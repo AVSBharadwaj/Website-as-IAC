@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::serverless-2016-10-31
+Resources:
+  myApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: visitorsCount 
+
+  myLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: app.lambda_handler
+      Runtime: Python 3.12
+      Events:
+        ApiEvent:
+    Type: Api
+    Properties: 
+      RestApiId: !Ref myApi
+      Path: /visitors-stage
+      Method: get
+      Policies:
+        - DynamoDBCrudPolicy:
+      TableName: !Ref myDynamoTable
+
+  myDynamoTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: visitorsCounterIAC
+      AttributeDefinitions:
+        - AttributeName: id
+          AtrributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+
+Outputs:
+  myApi:
+    Description: ""
+    Value: !Sub "https://${myApi}.execute-api.${AWS::Region}.amazonaws.com/"
+  myLambdaFunction:
+    Description: ""
+    Value: !GetAtt myLambdaFunction.Arn
+  myDynamoTable:
+    Description: ""
+    Value: !GetAtt myDynamoTable.Arn
+
+  
